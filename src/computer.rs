@@ -1,5 +1,19 @@
 use crate::game::Game;
 
+macro_rules! min {
+  ($a:expr, $b:expr) => {
+    if $a < $b { $a }
+    else { $b }
+  };
+}
+
+macro_rules! max {
+  ($a:expr, $b:expr) => {
+    if $a > $b { $a }
+    else { $b }
+  };
+}
+
 impl Game {
 
   pub fn find_best_move(&self) -> Option<Game> {
@@ -7,7 +21,7 @@ impl Game {
     let mut best_score = -1000;
     for (row, col) in self.free_spaces() {
       let next = self.place_figure(row, col).unwrap();
-      let result = next.evaluate_game(-1);
+      let result = next.minimax(false);
       if result > best_score {
         best_score = result;
         best_move = Some(next)
@@ -28,25 +42,39 @@ impl Game {
     output
   }
 
-  fn evaluate_game(&self, player: i32) -> i32 {
-    if self.free_space == 0 || self.status != None {
-      return self.evaluate_finished_game() * player
+  fn minimax(&self, maximising: bool) -> i32 {
+    if self.status != None || self.free_space == 0 {
+      return self.evaluate_finished_game()
     }
+    if maximising { self.maximising() }
+    else { self.minimising() }
+  }
+
+  fn maximising(&self) -> i32 {
     let mut best_score = -1000;
     for (row, col) in self.free_spaces() {
       let next = self.place_figure(row, col).unwrap();
-      let result = next.evaluate_game(player * -1);
-      if result > best_score {
-        best_score = result
-      }
+      let score = next.minimax(false);
+      best_score = max!(best_score, score);
     }
-    best_score * player
+    best_score
+  }
+
+  fn minimising(&self) -> i32 {
+    let mut worst_score = 1000;
+    for (row, col) in self.free_spaces() {
+      let next = self.place_figure(row, col).unwrap();
+      let score = next.minimax(true);
+      worst_score = min!(worst_score, score);
+    }
+    worst_score
   }
 
   fn evaluate_finished_game(&self) -> i32 {
     match self.status {
       None => 0,
-      _ => 1,
+      Some(true) => 1,
+      _ => -1
     }
   }
 
