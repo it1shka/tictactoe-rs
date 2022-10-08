@@ -1,6 +1,9 @@
 mod game;
+mod computer;
+
 use game::Game;
-use std::io::stdin;
+use std::{io::stdin, thread};
+use std::time::Duration;
 
 macro_rules! clear_terminal {
     () => {
@@ -26,35 +29,43 @@ fn get_user_input() -> Result<(usize, usize), String> {
     
 }
 
-fn main() {
-    let mut game_state = Game::new();
+fn game_loop(computer: bool) {
+    let mut game = Game::new();
     let mut error: Option<String> = None;
+
     loop {
         clear_terminal!();
-        println!("{}", game_state.display());
-        if game_state.free_space == 0 || game_state.status != None {
+        println!("{}", game.display());
+        if game.free_space == 0 || game.status != None {
             break
         }
-        println!("{}", game_state.display_current_turn());
+        println!("{}", game.display_current_turn());
         if let Some(err) = error {
             println!("{}", err);
             error = None
         }
         match get_user_input() {
-            Err(some_error) => {
-                error = Some(some_error)
-            },
-            Ok((row, col)) => {
-                match game_state.place_figure(row, col) {
+            Err(some_error) => { error = Some(some_error) },
+            Ok((user_row, user_col)) => {
+                match game.place_figure(user_row, user_col) {
                     Ok(next) => {
-                        game_state = next
+                        game = next;
+                        if computer && game.status == None && game.free_space > 0 { 
+                            clear_terminal!();
+                            println!("{}", game.display());
+                            println!("{}", game.display_current_turn());
+                            thread::sleep(Duration::from_millis(1000));
+                            game = game.find_best_move().expect("Computer failed!") 
+                        }
                     },
-                    Err(some_error) => {
-                        error = Some(some_error)
-                    }
+                    Err(some_error) => { error = Some(some_error) }
                 }
             }
         }
     }
-    println!("{}", game_state.display_game_result())
+    println!("{}", game.display_game_result())
+}
+
+fn main() {
+    game_loop(true)
 }
