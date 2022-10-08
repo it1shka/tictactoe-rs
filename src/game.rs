@@ -33,11 +33,14 @@ impl Game {
       }
       output.push('\n')
     }
+    output
+  }
+
+  pub fn display_current_turn(&self) -> String {
     let turn = 
       if self.turn { "Zero"  }
       else         { "Cross" };
-    output.push_str(&format!("Current turn: {}\n", turn));
-    output
+    format!("Current turn: {}", turn)
   }
 
   pub fn display_game_result(&self) -> String {

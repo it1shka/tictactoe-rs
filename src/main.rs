@@ -29,9 +29,13 @@ fn get_user_input() -> Result<(usize, usize), String> {
 fn main() {
     let mut game_state = Game::new();
     let mut error: Option<String> = None;
-    while game_state.status == None && game_state.free_space > 0 {
+    loop {
         clear_terminal!();
         println!("{}", game_state.display());
+        if game_state.free_space == 0 || game_state.status != None {
+            break
+        }
+        println!("{}", game_state.display_current_turn());
         if let Some(err) = error {
             println!("{}", err);
             error = None
