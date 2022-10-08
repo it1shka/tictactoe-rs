@@ -2,6 +2,7 @@ mod game;
 mod computer;
 
 use game::Game;
+use std::env;
 use std::{io::stdin, thread};
 use std::time::Duration;
 
@@ -67,5 +68,6 @@ fn game_loop(computer: bool) {
 }
 
 fn main() {
-    game_loop(true)
+    let args: Vec<String> = env::args().collect();
+    game_loop(args.len() > 1 && args[1] == "ai")
 }
